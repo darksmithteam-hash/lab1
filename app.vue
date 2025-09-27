@@ -12,11 +12,7 @@
     <section id="flavors">
       <h3>Our Flavors</h3>
       <ul>
-        <li>Vanilla</li>
-        <li>Chocolate</li>
-        <li>Strawberry</li>
-        <li>Mint Chocolate Chip</li>
-        <li>Others</li>
+        <li v-for="flavor in flavors" :key="flavor.id">{{ flavor.name }}</li>
       </ul>
     </section>
 
@@ -30,15 +26,32 @@
   </footer>
 </template>
 
-<script>
-export default {
-  name: 'App',
-  methods: {
-    donate() {
-      alert('Thank you for your donation!');
-    }
+<script setup>
+import { ref, onMounted } from 'vue'
+const supabase = useSupabaseClient()
+
+const flavors = ref([])
+
+async function getFlavors() {
+  const { data } = await supabase.from('flavors').select()
+  flavors.value = data
+}
+
+async function donate() {
+  const { error } = await supabase
+    .from('donations')
+    .insert({ amount: 10, created_at: new Date().toISOString() })
+
+  if (error) {
+    alert('Error processing donation: ' + error.message)
+  } else {
+    alert('Thank you for your donation!')
   }
 }
+
+onMounted(() => {
+  getFlavors()
+})
 </script>
 
 <style>
